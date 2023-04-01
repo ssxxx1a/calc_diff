@@ -1,0 +1,37 @@
+// {
+//     // Use IntelliSense to learn about possible attributes.
+//     // Hover to view descriptions of existing attributes.
+//     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+//     "version": "0.2.0",
+//     "configurations": [
+
+//         {
+//             "name": "Python: Current File",
+//             "type": "python",
+//             "request": "launch",
+//             // "program": "C:/Users/gabri/anaconda3/Scripts/torchrun.exe",
+//             "program": "/home/gmongaras/anaconda3/envs/main/bin/torchrun",
+//             // "module": "data.make_massive_tensor",
+//             // "module": "src.infer",
+//             // "module": "eval.compute_FID",
+//             // "module": "eval.compute_imagenet_stats",
+//             // "module": "eval.compute_model_stats",
+//             // "module": "eval.compute_model_stats_multiple",
+//             // "module": "tests.diff_model_noise_test",
+//             "console": "integratedTerminal",
+//             "justMyCode": false,
+//             "args": [
+//                 "--nproc_per_node=1",
+//                 "src/train.py"
+//             ]
+
+//             // "args": [
+//             //     "--loadDir", "models/models_res_res_atn",
+//             //     "--loadFile", "model_358e_450000s.pkl",
+//             //     "--loadDefFile", "model_params_358e_450000s.json",
+//             //     "--device", "cpu", 
+//             //     "--step_size", "500"
+//             // ]
+//         }
+//     ]
+// }
