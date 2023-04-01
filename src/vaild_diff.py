@@ -85,13 +85,17 @@ def infer(args):
     # Create a dummy model
     """
     这里的设置是默认的,后续会通过loadModel使用的json进行修改
+    step_size为间隔,
+    step_size=1 -->T=1000
+    step_size=20 -->T=50
     """
     model=diff_model(inCh=3, embCh=3, chMult=1, num_blocks=1,
                 blk_types=["res", "res"], T=100000, beta_sched="cosine", t_dim=100, device=device, 
                 c_dim=100, num_classes=1000, 
                 atn_resolution=16, dropoutRate=0.0, 
-                step_size=100, DDIM_scale=DDIM_scale,
+                step_size=1, DDIM_scale=DDIM_scale,
     )
+    
    # model = diff_model(3, 3, 1, 1, ["res", "res"], 100000, "cosine", 100, device, 100, 1000, 16, 0.0, step_size, DDIM_scale)
     
     # Load in the model weights
@@ -130,7 +134,7 @@ def infer(args):
                 eps_t_null,_=model.forward(x_t,t,torch_zero,torch_one)#return noise_t_un, v_t_un
             #有条件噪声eps_t_cond
             mean_eps_t_cond=torch.zeros_like(eps_t_null)
-            interval=50 #是否叠加在batchsize上
+            interval=1 #是否叠加在batchsize上
             t=t.repeat(interval).view(-1)
             x_t=x_t.repeat(interval,1,1,1)
             for c_i in range(num_classes//interval): #[0...9,10..19]
