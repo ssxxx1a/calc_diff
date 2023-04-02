@@ -9,14 +9,19 @@
 all defult seed is 42
  
 
+#### 验证内容 && interval==1 or ==1000
 full step: 1000//20==50(interval=1) 
 ![](res_seed_42_samples_1_step_20_interval_1.png)
 
 full step: 1000//20==50(interval=1000) 
 ![](res_seed_42_samples_1_step_20_interval_1000.png)
 
-full step: 1000//100==10(interval=1000) 
+<!-- full step: 1000//100==10(interval=1000) 
 ![](res_seed_42_samples_1_step_100_interval_1000.png)
 
-full step: 1000//10==1000(interval=1000) 
-![](res_seed_42_samples_1_step_10_interval_1000.png)
+full step: 1000//10==100(interval=1000) 
+![](res_seed_42_samples_1_step_10_interval_1000.png) -->
+#### 1 sample 1000 timesteps
+
+full step: 1000//1==1000(interval=1000) 
+![](res_seed_42_samples_1_step_1_interval_1000.png)

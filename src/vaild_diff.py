@@ -97,7 +97,7 @@ def infer(args):
     error_over_time={}
     num_classes=1000
     n_samples_per_time=1
-    step_size=10 #实际迭代步长为 1000//step_size
+    step_size=1 #实际迭代步长为 1000//step_size
     classifier_path='pretrained_models/64x64_classifier.pt'#from guided_diffusion : https://openaipublic.blob.core.windows.net/diffusion/jul-2021/64x64_classifier.pt
     seed=42
     interval=1000 #为了迅速计算每个类别的贡献，将其叠加至bs维度，叠加的长度为interval,interval=1000约50G显存
@@ -118,7 +118,7 @@ def infer(args):
     ############################################################### define random seed####################################################################################
     #for reproduce the result
     seed_everything(seed)
-    
+    import time
     for i in range(n_samples_per_time):
         c=i%num_classes
         # Sample the model
@@ -149,6 +149,7 @@ def infer(args):
             for c_i in range(num_classes//interval): #[0...9,10..19]
                 assert num_classes%interval==0
                 input_condition=torch.arange(interval*c_i,interval*(c_i+1)).view(-1)
+                
                 
                 with torch.no_grad():
                     eps_t_c,_=model.forward(x_t,t,input_condition,torch_zero)
