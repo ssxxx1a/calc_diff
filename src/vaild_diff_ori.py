@@ -9,7 +9,6 @@ import click
 import argparse
 import numpy as np
 from tqdm import tqdm
-from pytorch_lightning import seed_everything
 def config():
     # several hyperparameters for models
     parser = argparse.ArgumentParser(description='test for diffusion model')
@@ -64,20 +63,23 @@ def convert_x_t_to_images_for_vaild(x_t,name='test.png'):
     img=img.numpy()
     cv2.imwrite(name,img)
 def infer(args):
+
     loadDir=args.loadDir
     loadFile=args.loadFile
     loadDefFile=args.loadDefFile
+
     step_size=args.step_size
     DDIM_scale=args.DDIM_scale
     device=args.device
     w=args.guidance
     class_label=args.class_label
     corrected=args.corrected
+
     out_imgname=args.out_imgname
     out_gifname=args.out_gifname
     gif_fps=args.gif_fps
     
-    
+    classifier=create_classifier('pretrained_models/64x64_classifier.pt').to(device)
     ### Model Creation
 
     # Create a dummy model
@@ -87,38 +89,27 @@ def infer(args):
     step_size=1 -->T=1000
     step_size=20 -->T=50
     """
-    
-    
-    
-    ############################################################### define all important args:################################################################################
-    '''
-    define all important args:
-    '''
-    error_over_time={}
-    num_classes=1000
-    n_samples_per_time=1
-    step_size=10 #实际迭代步长为 1000//step_size
-    classifier_path='pretrained_models/64x64_classifier.pt'#from guided_diffusion : https://openaipublic.blob.core.windows.net/diffusion/jul-2021/64x64_classifier.pt
-    seed=42
-    interval=1000 #为了迅速计算每个类别的贡献，将其叠加至bs维度，叠加的长度为interval,interval=1000约50G显存
-    
-    ################################################################ define diffusion model################################################################################
+    step_size=100
     model=diff_model(inCh=3, embCh=3, chMult=1, num_blocks=1,
                 blk_types=["res", "res"], T=100000, beta_sched="cosine", t_dim=100, device=device, 
                 c_dim=100, num_classes=1000, 
                 atn_resolution=16, dropoutRate=0.0, 
                 step_size=step_size, DDIM_scale=DDIM_scale,
     )
+    
+   # model = diff_model(3, 3, 1, 1, ["res", "res"], 100000, "cosine", 100, device, 100, 1000, 16, 0.0, step_size, DDIM_scale)
+    
+    # Load in the model weights
     model.loadModel(loadDir, loadFile, loadDefFile)
-    ################################################################ define classifier################################################################################
-    classifier=create_classifier(classifier_path).to(device)
-
+    
+    from pytorch_lightning import seed_everything
+    seed_everything(42)
    
-    
-    ############################################################### define random seed####################################################################################
-    #for reproduce the result
-    seed_everything(seed)
-    
+    # print(torch.rand(size=(1,10)))
+    # exit()
+    error_over_time={}
+    num_classes=1000
+    n_samples_per_time=1
     for i in range(n_samples_per_time):
         c=i%num_classes
         # Sample the model
@@ -144,7 +135,8 @@ def infer(args):
                 eps_t_null,_=model.forward(x_t,t,torch_zero,torch_one)#return noise_t_un, v_t_un
             #有条件噪声eps_t_cond
             mean_eps_t_cond=torch.zeros_like(eps_t_null)
-            #t=t.repeat(interval).view(-1)
+            interval=1000 #是否叠加在batchsize上
+          #  t=t.repeat(interval).view(-1)
             x_t=x_t.repeat(interval,1,1,1)
             for c_i in range(num_classes//interval): #[0...9,10..19]
                 assert num_classes%interval==0
@@ -172,7 +164,7 @@ def infer(args):
     plt.plot(axis_x,axis_y)
     plt.gca().invert_xaxis()
     
-    plt.savefig('res_seed_{}_samples_{}_step_{}_interval_{}.png'.format(seed,n_samples_per_time,step_size,interval))
+    plt.savefig('113res_step_{}_interval_{}.png'.format(step_size,interval))
     #model.calc_diff(1)
     # Convert the sample image to 0->255
     # and show it

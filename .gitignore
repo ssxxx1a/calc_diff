@@ -5,8 +5,8 @@ models_res_conv/*
 models_res_res/*
 models_res/*
 data/*
-*.gif
-*.png
+# *.gif
+# *.png
 eval/saved_stats/*
 eval/saved_stats.7z
 
