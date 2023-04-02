@@ -101,7 +101,7 @@ def infer(args):
     
     #### 常修改参数
     interval=1000 #为了迅速计算每个类别的贡献，将其叠加至bs维度，叠加的长度为interval,interval=1000约50G显存
-    n_samples_per_time=100
+    n_samples_per_time=1000
     step_size=20 #实际迭代步长为 1000//step_size
     
     ################################################################ define diffusion model################################################################################
@@ -124,7 +124,8 @@ def infer(args):
     for i in range(n_samples_per_time):
         c=i%num_classes
         # Sample the model
-        noise, x_0_to_T,t_list_ddpm = model.sample_imgs(1, c, w, True, True, True, corrected)
+        print('run {} sample. used c is {} '.format(i,c))
+        noise, x_0_to_T,t_list_ddpm = model.sample_imgs(1, c, w, True, False, True, corrected)
         '''
         x_0_to_T=[x_t,x_t-1,x_t-2...x_0]
         '''
