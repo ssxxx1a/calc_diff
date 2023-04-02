@@ -25,3 +25,5 @@ full step: 1000//10==100(interval=1000)
 
 full step: 1000//1==1000(interval=1000) 
 ![](res_seed_42_samples_1_step_1_interval_1000.png)
+#### 100 sample 50 timesteps
+res_seed_42_samples_100_step_20_interval_1000.png
