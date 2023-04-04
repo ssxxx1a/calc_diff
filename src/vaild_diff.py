@@ -94,7 +94,7 @@ def infer(args):
     '''
     define all important args:
     '''
-    error_over_time={}
+    
     num_classes=1000
     classifier_path='pretrained_models/64x64_classifier.pt'#from guided_diffusion : https://openaipublic.blob.core.windows.net/diffusion/jul-2021/64x64_classifier.pt
     seed=42
@@ -104,6 +104,8 @@ def infer(args):
     n_samples_per_time=1000
     step_size=20 #实际迭代步长为 1000//step_size
     
+    error_over_time={}
+   # error_over_time=np.zeros(shape=(1000,1000))
     ################################################################ define diffusion model################################################################################
     model=diff_model(inCh=3, embCh=3, chMult=1, num_blocks=1,
                 blk_types=["res", "res"], T=100000, beta_sched="cosine", t_dim=100, device=device, 
@@ -114,10 +116,12 @@ def infer(args):
     model.loadModel(loadDir, loadFile, loadDefFile)
     ################################################################ define classifier################################################################################
     classifier=create_classifier(classifier_path).to(device)
-
-   
-    
+        
+    ###############################################################define loss #######################################################################################
+    L1_loss=torch.nn.L1Loss()
+    L1_loss.to('cuda')
     ############################################################### define random seed####################################################################################
+
     #for reproduce the result
     seed_everything(seed)
     import time
@@ -130,10 +134,12 @@ def infer(args):
         x_0_to_T=[x_t,x_t-1,x_t-2...x_0]
         '''
         for t_i in tqdm(range(0,min(1001,len(x_0_to_T)))):
+            
             x_t=x_0_to_T[t_i]
             t=t_list_ddpm[t_i]
             if t not in error_over_time.keys():
                 error_over_time[t]=[]
+                #error_over_time[t]=torch.zeros(size=(1,))
             if not isinstance(t,torch.Tensor):
                 t=torch.tensor(t).repeat(x_t.shape[0]).to(torch.long)
             x_t = x_t.to(device)
@@ -145,14 +151,15 @@ def infer(args):
             #无条件噪声eps_t
             with torch.no_grad():
                 eps_t_null,_=model.forward(x_t,t,torch_zero,torch_one)#return noise_t_un, v_t_un
+           
             #有条件噪声eps_t_cond
             mean_eps_t_cond=torch.zeros_like(eps_t_null)
             #t=t.repeat(interval).view(-1)
             x_t=x_t.repeat(interval,1,1,1)
+            
             for c_i in range(num_classes//interval): #[0...9,10..19]
                 assert num_classes%interval==0
                 input_condition=torch.arange(interval*c_i,interval*(c_i+1)).view(-1)
-                
                 
                 with torch.no_grad():
                     eps_t_c,_=model.forward(x_t,t,input_condition,torch_zero)
@@ -163,9 +170,12 @@ def infer(args):
                 # with torch.no_grad():
                 #     eps_t_c,_=model.forward(x_t,t,torch.tensor([int(c_i)]),torch_zero)
                 #mean_eps_t_cond+=eps_t_c*p_t[0][c_i]
+            
             with torch.no_grad():
-                error=torch.nn.functional.l1_loss(eps_t_null,mean_eps_t_cond)
-            error_over_time[int(t[0])].append(error.cpu())
+                error=L1_loss(eps_t_null,mean_eps_t_cond)
+           
+            error_over_time[int(t[0].cpu())].append(error.cpu())
+           
     print(error_over_time)
     axis_x=[]
     axis_y=[]
@@ -176,7 +186,7 @@ def infer(args):
     plt.plot(axis_x,axis_y)
     plt.gca().invert_xaxis()
     
-    plt.savefig('res_seed_{}_samples_{}_step_{}_interval_{}.png'.format(seed,n_samples_per_time,step_size,interval))
+    plt.savefig('1res_seed_{}_samples_{}_step_{}_interval_{}.png'.format(seed,n_samples_per_time,step_size,interval))
     #model.calc_diff(1)
     # Convert the sample image to 0->255
     # and show it
